@@ -1,0 +1,49 @@
+* Open ready-to-analyse.sav in SPSS before running these commands.
+* Data > Select Cases > All cases; Data > Weight Cases > Do not weight; Data > Split File > Analyze all cases.
+FILTER OFF.
+USE ALL.
+WEIGHT OFF.
+SPLIT FILE OFF.
+EXECUTE.
+
+* ANOVA.
+ONEWAY chol_before BY smoking_code /STATISTICS DESCRIPTIVES WELCH /POSTHOC=GH ALPHA(0.05).
+
+* ANOVA EXERCISE.
+ONEWAY chol_after BY smoking_code /STATISTICS DESCRIPTIVES WELCH /POSTHOC=GH ALPHA(0.05).
+
+* RANKS.
+NPAR TESTS /M-W=chol_after BY female(0 1) /WILCOXON=chol_before WITH chol_after (PAIRED) /K-W=chol_before BY smoking_code(0 2).
+
+* RANKS EXERCISE.
+NPAR TESTS /M-W=chol_after BY diabetes_yes(0 1) /K-W=chol_after BY smoking_code(0 2).
+
+* CHI.
+CROSSTABS /TABLES=female BY diabetes_yes /STATISTICS=CHISQ /CELLS=COUNT EXPECTED ROW.
+CROSSTABS /TABLES=female BY smoking_code /STATISTICS=CHISQ /CELLS=COUNT EXPECTED ROW.
+CROSSTABS /TABLES=ethnicity BY diabetes_yes /STATISTICS=CHISQ /CELLS=COUNT EXPECTED ROW.
+
+* CHI EXERCISE.
+CROSSTABS /TABLES=smoking_code BY diabetes_yes /STATISTICS=CHISQ /CELLS=COUNT EXPECTED ROW.
+
+* LINEAR SIMPLE.
+REGRESSION /STATISTICS COEFF OUTS R ANOVA CI(95) /DEPENDENT chol_change /METHOD=ENTER female.
+
+* LINEAR ADJUSTED.
+REGRESSION /STATISTICS COEFF OUTS R ANOVA COLLIN TOL CI(95) /DEPENDENT chol_change /METHOD=ENTER female age diabetes_yes /SCATTERPLOT=(*ZRESID,*ZPRED) /RESIDUALS HISTOGRAM(ZRESID) NORMPROB(ZRESID) /SAVE PRED RESID.
+
+* LINEAR EXERCISE.
+REGRESSION /STATISTICS COEFF R ANOVA CI(95) /DEPENDENT chol_change /METHOD=ENTER female age diabetes_yes chol_before.
+
+* LOGISTIC SIMPLE.
+LOGISTIC REGRESSION VARIABLES diabetes_yes /METHOD=ENTER chol_before /PRINT=CI(95).
+
+* LOGISTIC ADJUSTED.
+LOGISTIC REGRESSION VARIABLES diabetes_yes /METHOD=ENTER chol_before age female /PRINT=CI(95) GOODFIT.
+
+* LOGISTIC EXERCISE.
+LOGISTIC REGRESSION VARIABLES diabetes_yes /METHOD=ENTER chol_before age female smoking_code /CATEGORICAL=smoking_code /CONTRAST(smoking_code)=Indicator(1) /PRINT=CI(95).
+
+* REFRESH.
+T-TEST GROUPS=female(0 1) /VARIABLES=sodium chol_before /CRITERIA=CI(.95).
+T-TEST PAIRS=chol_before WITH chol_after (PAIRED) /CRITERIA=CI(.95).
